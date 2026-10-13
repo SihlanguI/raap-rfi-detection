@@ -1,0 +1,63 @@
+# configs/dataset.yaml
+# ---------------------
+# Configuration for Part 1: turning raw MeerKAT visibilities into an
+# ML-ready patch dataset. See meerkat_ml/data/dataset.py (DatasetConfig)
+# for a full description of every field.
+
+# --- Patch extraction ---
+# patch_size / stride apply to the TIME axis (and, by default, the
+# frequency axis too - patches are square unless you set patch_size_freq).
+patch_size: 128        # patch size along the time axis
+stride: 64              # step along the time axis (< patch_size => overlap)
+
+# Optional: set these to build RECTANGULAR patches with an independent
+# frequency-axis size/stride. This matters a lot for real data: many
+# MeerKAT scans (especially short calibration "track" scans) have very
+# few time dumps - sometimes only 20-30 - but thousands of frequency
+# channels. Forcing a square patch_size in that case either doesn't fit
+# the time axis at all, or (if shrunk to fit) throws away almost all of
+# your frequency resolution. Example for a scan with n_time=22,
+# n_freq=4096 (uncomment and adjust to taste - both values should stay
+# divisible by 4 if you plan to train models.cnn.SimpleRFIUNet on the
+# result, since it uses two 2x2 max-pooling stages):
+#
+# patch_size: 20          # time axis: fits within 22 time dumps
+# stride: 4                # small stride so overlapping patches still cover the short scan
+# patch_size_freq: 256    # freq axis: makes full use of the 4096 channels
+# stride_freq: 256         # non-overlapping tiles across frequency
+#
+# patch_size_freq: null   # leave unset (or omit) for a square patch
+# stride_freq: null
+
+# --- Normalization ---
+# One of: minmax, zscore, log
+normalization: zscore
+
+# --- Train / validation / test split (must sum to 1.0) ---
+train_split: 0.70
+validation_split: 0.15
+test_split: 0.15
+
+# --- Dataset filtering ---
+# NOTE: real MeerKAT observations are often far more sparsely/unevenly
+# flagged than the synthetic test data these defaults were tuned on. If
+# you point this at real data and get "0 patches kept after filtering",
+# run inspect_rfi_fraction_distribution(observation, config) first
+# (see notebooks/02_create_dataset.ipynb, section 4) to see the actual
+# per-patch RFI density before choosing min_rfi_fraction - it is very
+# easy to set a threshold that silently discards every single patch.
+#
+# Also note: if patch_size (and/or patch_size_freq) is larger than the
+# observation's actual n_time / n_freq, NO patches can be extracted at
+# all - build_patches() will raise a clear error telling you the actual
+# observation dimensions and how to fix patch_size / patch_size_freq
+# (see notebooks/02_create_dataset.ipynb, section 3).
+discard_empty: true       # drop patches with 0% RFI
+discard_full_rfi: false   # drop patches that are 100% RFI
+min_rfi_fraction: 0.01    # minimum fraction of RFI pixels required
+max_rfi_fraction: 1.0     # maximum fraction of RFI pixels allowed
+
+# --- Output ---
+output_dir: dataset
+random_seed: 42
+

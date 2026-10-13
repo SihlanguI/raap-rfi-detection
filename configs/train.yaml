@@ -1,0 +1,20 @@
+# configs/train.yaml
+# -------------------
+# Configuration for Part 2: training the CNN on the dataset produced by
+# Part 1. See meerkat_ml/models/train.py (TrainConfig) for a full
+# description of every field.
+
+dataset_dir: dataset
+checkpoint_dir: checkpoints
+
+# --- Model ---
+base_channels: 16      # width of the first CNN layer
+
+# --- Training ---
+epochs: 15
+batch_size: 16
+learning_rate: 0.001
+loss_function: bce     # one of: bce, dice
+num_workers: 2
+device: auto           # one of: auto, cpu, cuda
+seed: 42

@@ -1,0 +1,9 @@
+# Part 1: dataset creation
+numpy
+pandas
+matplotlib
+pyyaml
+katdal          # only required to load real MeerKAT .rdb files
+
+# Part 2: CNN training
+torch
